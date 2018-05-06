@@ -11,7 +11,6 @@ from rmq_params import rmq_params, rmq_routing_keys
 
 
 
-
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", "--RABBIT_MQ_ADDR", help="This is the address of the rabbitMQ instance that is running", type=str)
 
@@ -82,17 +81,24 @@ def swipe_listener(ch):
 def callback(ch, method, properties, body):
     value = body.decode("utf-8")
     print("Received %s" % value)
-    if value == "valid":
+    if value == "good":
         GPIO.output(hw_pins['green'], True)
         GPIO.output(hw_pins['powerstrip'], True)
         GPIO.output(hw_pins['red'], False)
+        GPIO.output(hw_pins['yellow'], False)
         # turn on led and the power strip here
         print("Access allowed")
 
+    elif value == "almost":
+        GPIO.output(hw_pins['green'], False)
+        GPIO.output(hw_pins['powerstrip'], True)
+        GPIO.output(hw_pins['red'], False)
+        GPIO.output(hw_pins['yellow'], True)
     else:
         GPIO.output(hw_pins['green'], False)
         GPIO.output(hw_pins['powerstrip'], False)
         GPIO.output(hw_pins['red'], True)
+        GPIO.output(hw_pins['yellow'], False)
         # turn on the LEDS here 
         print("Wasnt in there")
 
@@ -129,4 +135,8 @@ except KeyboardInterrupt:
     GPIO.output(hw_pins['green'], False)
     GPIO.output(hw_pins['powerstrip'], False)
     GPIO.output(hw_pins['red'], False)
+    GPIO.output(hw_pins['yellow'], False)
     t.join()
+
+
+
