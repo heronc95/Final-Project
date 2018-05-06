@@ -27,7 +27,7 @@ collection = db.student_ids
 # Clear out old entries from the database here
 result = collection.delete_many({})
 
-set = {"id": "905870688", "start_time":"05-05-0-40", "end_time":"05-05-1-5"}
+set = {"id": "905870688", "start_time":"05-05-0-40", "end_time":"05-05-1-1"}
 
 # insert the first default user name and password
 collection.insert_one(set)

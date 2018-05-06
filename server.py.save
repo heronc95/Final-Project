@@ -42,11 +42,8 @@ def is_valid_time(start_time, end_time, given):
     cur_minute = int(given.split("-")[3])
 
     # now compare the values to see if it is time for them
-    if cur_hour >= start_hour:
-        # compare to see if it is within 15 mins of ending
+    # compare to see if it is within 15 mins of ending
         time_left = (end_hour - cur_hour) * 60 + (end_minute - cur_minute)
-        if time_left <= 0:
-            return "no" 
         print(time_left)
         if time_left < 15:
             print("Warn the user time is almost up.")
@@ -147,14 +144,11 @@ def time_watcher():
             start = result['start_time']
             end = result['end_time']
             response = is_valid_time(start, end, cur)
-           
+
         else:
             # make the current time slot available
-            response = "no"
-        # make the response a no
-        if response == "no":
             current_id = None
-        
+            response = "no"
         # Signal we have sent the order to the server
         channel.basic_publish(exchange=rmq_params["exchange"], routing_key=rmq_routing_keys["valid_queue"], body=response)
 
