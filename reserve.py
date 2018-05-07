@@ -30,24 +30,21 @@ GPIO.output(hw_pins['green'], False)
 GPIO.output(hw_pins['red'], True)
 GPIO.output(hw_pins['powerstrip'], False)
 
-
+number = ""
 # This is the function that listens to swipes and then sends them to the main user
-def swipe_listener(ch):
-
+def swipe_listener():
+    global number
     device = InputDevice("/dev/input/event0") # my keyboard
     # The global variable that holds the number to read from
     while 1:
-        number = ""
         done = False
         enter_count = 0
         print("Here")
-        
         for event in device.read_loop():
             print("Here 2")
             # Event is an inputEvent, which is not iterable
             if  event.type == ecodes.EV_KEY:
                 category_string = str(categorize(event))
-                
                 print(category_string)
 
                 # parse the raw input data to get the information we want from the device
@@ -71,14 +68,44 @@ def swipe_listener(ch):
                     if enter_count == 2:
                         break
         print(number)
+
+
+
+def echo_current_number(addr):
+    global number
+    username = rmq_params["username"]
+    pword = rmq_params["password"]
+    virtual_host= rmq_params["vhost"]
+
+    ip_addr_for_rmq = addr
+
+    credentials = pika.PlainCredentials(username, pword)
+    parameters = pika.ConnectionParameters(host=ip_addr_for_rmq, virtual_host=virtual_host, port=5672, credentials=credentials, socket_timeout=1000)
+    connection = pika.BlockingConnection(parameters)
+
+    ch = connection.channel()
+    # setup RMQ stuff here 
+    while 1:
+        print("Sending the number now " + str(number))
         # Write the number to the server here
         ch.basic_publish(exchange=rmq_params["exchange"], routing_key=rmq_routing_keys["id_queue"], body=str(number))
+        time.sleep(.1)
+
 
 
 
 
 # This is the callback for the valid queue. Writes to the hardware devices
 def callback(ch, method, properties, body):
+    good = False
+    if all(v is not None for v in [ch, method, properties, body]):
+        good = True
+    if not good:
+        print("Something weird happened here")
+        while 1:
+            x = 0
+        return 
+
     value = body.decode("utf-8")
     print("Received %s" % value)
     if value == "good":
@@ -94,7 +121,7 @@ def callback(ch, method, properties, body):
         GPIO.output(hw_pins['powerstrip'], True)
         GPIO.output(hw_pins['red'], False)
         GPIO.output(hw_pins['yellow'], True)
-    else:
+    elif value == "no":
         GPIO.output(hw_pins['green'], False)
         GPIO.output(hw_pins['powerstrip'], False)
         GPIO.output(hw_pins['red'], True)
@@ -120,14 +147,20 @@ connection = pika.BlockingConnection(parameters)
 
 # Need to make the channel for the queues to talk through
 channel = connection.channel()
+channel.queue_declare(rmq_params["id_queue"], auto_delete=False)
+
+
+
 # Sets up the callback that is used
 queue_name = rmq_params["valid_queue"]
 channel.basic_consume(callback, queue_name, no_ack=True)
 
 print("[Checkpoint] Consuming from RMQ queue: %s" % queue_name)
-t = threading.Thread(name='my_listener', target=swipe_listener, args=(channel,))
+t = threading.Thread(name='my_listener', target=swipe_listener)
 t.start()
 
+echoer = threading.Thread(name='number_shouter', target=echo_current_number, args=(str(args.RABBIT_MQ_ADDR),))
+echoer.start()
 try:
     # Start consuming the messages here
     channel.start_consuming()
@@ -137,6 +170,6 @@ except KeyboardInterrupt:
     GPIO.output(hw_pins['red'], False)
     GPIO.output(hw_pins['yellow'], False)
     t.join()
-
+    echoer.join()
 
 

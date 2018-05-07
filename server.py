@@ -2,6 +2,7 @@ from pymongo import MongoClient
 import RPi.GPIO as GPIO
 from hw_pins import hw_pins
 import threading
+import socket
 import pika
 import time
 import pickle
@@ -102,13 +103,51 @@ def setup_rmq():
     channel.queue_declare(rmq_params["ffa_queue"], auto_delete=False)
 
 
-
-
     channel.queue_bind(exchange=rmq_params["exchange"], queue=rmq_params["ffa_queue"], routing_key=rmq_routing_keys["ffa_queue"])
     channel.queue_bind(exchange=rmq_params["exchange"], queue=rmq_params["id_queue"], routing_key=rmq_routing_keys["id_queue"])
     channel.queue_bind(exchange=rmq_params["exchange"], queue=rmq_params["valid_queue"], routing_key=rmq_routing_keys["valid_queue"])
     print("[Checkpoint] Connected to vhost %s on RMQ server at %s as user %s" % (virtual_host, ip_to_run, username))
     return channel
+
+def listen_for_times_to_enter(): 
+    print("RUnning socket boi")
+    TCP_IP = '0.0.0.0'
+    TCP_PORT = 6969
+    BUFFER_SIZE = 1024  # Normally 1024, but we want fast response
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((TCP_IP, TCP_PORT))
+    s.listen(1)
+    while 1:
+        conn, addr = s.accept()
+        print('Connection address:', addr)
+        while 1:
+
+
+            data = conn.recv(BUFFER_SIZE)
+
+            if not data: 
+                break
+            data = data.decode('utf-8')
+            print("received data:", data)
+
+            data = data.split(",")
+            id = data[0]
+            start_time = data[1]
+            end_time = data[2]
+            to_insert = {"id": id, "start_time": start_time, "end_time": end_time}
+            print("I'm inserting this: " + str(to_insert))
+            # Remove all the others from the database here
+            result = collection.delete_many({'id':id})
+
+            # now insert my thing above
+            collection.insert_one(set)
+            print("Just inserted it")
+
+        conn.close()
+
+
+
 
 def motion_handler():
     # Need to make the channel for the queues to talk through
@@ -119,8 +158,17 @@ def motion_handler():
     def motion_callback(ch, method, properties, body):
         value = body.decode("utf-8")
         print("Received %s" % value)
-        # TODO update the website with this new information
 
+        # Now send it to the server here
+        TCP_IP = '0.0.0.0'
+        TCP_PORT = 9696
+        BUFFER_SIZE = 1024
+        MESSAGE = value
+        print("sending: " + MESSAGE)
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((TCP_IP, TCP_PORT))
+        s.send(MESSAGE)
+        s.close()
     # Sets up the callback that is used
     queue_name = rmq_params["ffa_queue"]
     channel.basic_consume(motion_callback, queue_name, no_ack=True)
@@ -128,6 +176,7 @@ def motion_handler():
 
     # Start consuming the messages here
     channel.start_consuming()
+
 
 def time_watcher():
     global current_id
@@ -147,14 +196,13 @@ def time_watcher():
             start = result['start_time']
             end = result['end_time']
             response = is_valid_time(start, end, cur)
-           
+
         else:
             # make the current time slot available
             response = "no"
         # make the response a no
         if response == "no":
             current_id = None
-        
         # Signal we have sent the order to the server
         channel.basic_publish(exchange=rmq_params["exchange"], routing_key=rmq_routing_keys["valid_queue"], body=response)
 
@@ -170,15 +218,15 @@ def reserver_thread():
         # This should send it through a rabbitMQ message queue
         result = collection.find_one({'id': value})
         # makes sure the right person is accessing, and that the current person still has it reserved
-        if result and not current_id:
+        #if result and not current_id:
+        if result:
             current_id = value
             cur = get_current_time()
             start = result['start_time']
             end = result['end_time']
             response = is_valid_time(start, end, cur)
-            
         else:
-            current_id = None
+            #current_id = None
             response = "no"
         # Signal we have sent the order to the server
         ch.basic_publish(exchange=rmq_params["exchange"], routing_key=rmq_routing_keys["valid_queue"], body=response)
@@ -204,12 +252,13 @@ def reserver_thread():
 
 # now start two threads and pass the channel onto them so they can start listening on them
 
-rt = threading.Thread(name='reserve', target=reserver_thread)
-rt.start()
+#rt = threading.Thread(name='reserve', target=reserver_thread)
+#rt.start()
 
 mt = threading.Thread(name='motion', target=motion_handler)
 mt.start()
 
-
-timer = threading.Thread(name='timer', target=time_watcher)
-timer.start()
+sockme = threading.Thread(name='mongo_enterer', target= listen_for_times_to_enter)
+sockme.start()
+#timer = threading.Thread(name='timer', target=time_watcher)
+#timer.start()

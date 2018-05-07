@@ -1,7 +1,6 @@
 import RPi.GPIO as GPIO                           #Import GPIO library
 import time                                       #Import time library
 from hw_pins import hw_pins
-from pymongo import MongoClient
 import RPi.GPIO as GPIO
 from hw_pins import hw_pins
 from rmq_params import rmq_params, rmq_routing_keys
@@ -14,10 +13,6 @@ parser.add_argument("-s", "--RABBIT_MQ_ADDR", help="This is the address of the r
 # This gets the arguments from the user, access them through SERVER_PORT, etc
 args = parser.parse_args()
 
-
-
-
-
 username = rmq_params["username"]
 pword = rmq_params["password"]
 virtual_host= rmq_params["vhost"]
@@ -27,7 +22,6 @@ ip_addr_for_rmq = str(args.RABBIT_MQ_ADDR)
 credentials = pika.PlainCredentials(username, pword)
 parameters = pika.ConnectionParameters(host=ip_addr_for_rmq, virtual_host=virtual_host, port=5672, credentials=credentials,  socket_timeout=1000)
 connection = pika.BlockingConnection(parameters)
-
 
 
 # Need to make the channel for the queues to talk through
@@ -64,20 +58,28 @@ time.sleep(2)                                     #Waiting 2 seconds for the sen
 state = "no"
 #setup the rmq device now
 print("Detecting motion")
+nos = 0
+GPIO.output(hw_pins['green'], False)
+GPIO.output(hw_pins['red'], True)
+
 while True:
     if state == "no" and GPIO.input(hw_pins['pir']):                            #Check whether pir is HIGH
         state = "yes"    
         GPIO.output(hw_pins['green'], True)
         GPIO.output(hw_pins['red'], False)
-        ch.basic_publish(exchange=rmq_params["exchange"], routing_key=rmq_routing_keys["ffa_queue"], body="yes")
         print("Motion Detected!")
         time.sleep(2)                               #D1- Delay to avoid multiple detection
     elif state == "yes" and GPIO.input(hw_pins['pir']) == 0:
-        state = "no"
-        GPIO.output(hw_pins['green'], False)
-        GPIO.output(hw_pins['red'], True)
-        ch.basic_publish(exchange=rmq_params["exchange"], routing_key=rmq_routing_keys["ffa_queue"], body="no")
+        nos += 1
+        if nos > 0:
+            state = "no"
+            nos = 0
+            GPIO.output(hw_pins['green'], False)
+            GPIO.output(hw_pins['red'], True)
     time.sleep(0.1)                                #While loop delay should be less than detection(hardware) delay
+    print("sending: " + str(state))
+    ch.basic_publish(exchange=rmq_params["exchange"], routing_key=rmq_routing_keys["ffa_queue"], body=state)
+
 
 
 
