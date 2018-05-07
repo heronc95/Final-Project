@@ -141,34 +141,40 @@ def listen_for_times_to_enter():
             result = collection.delete_many({'id':id})
 
             # now insert my thing above
-            collection.insert_one(set)
+            collection.insert_one(to_insert)
             print("Just inserted it")
 
         conn.close()
 
 
 
-
+count = 0
 def motion_handler():
     # Need to make the channel for the queues to talk through
     channel = setup_rmq()
 
-
     # Now stop and listen on the id queue
     def motion_callback(ch, method, properties, body):
+        # slow down the socket conneciton
+        global count
+        count += 1
+        if count <= 10:
+            return
+        count = 0
         value = body.decode("utf-8")
         print("Received %s" % value)
-
         # Now send it to the server here
-        TCP_IP = '0.0.0.0'
+        TCP_IP = '172.29.22.19'
         TCP_PORT = 9696
         BUFFER_SIZE = 1024
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         MESSAGE = value
         print("sending: " + MESSAGE)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
         s.connect((TCP_IP, TCP_PORT))
-        s.send(MESSAGE)
+        s.send(MESSAGE.encode())
         s.close()
+        print("Done") 
     # Sets up the callback that is used
     queue_name = rmq_params["ffa_queue"]
     channel.basic_consume(motion_callback, queue_name, no_ack=True)
@@ -252,8 +258,8 @@ def reserver_thread():
 
 # now start two threads and pass the channel onto them so they can start listening on them
 
-#rt = threading.Thread(name='reserve', target=reserver_thread)
-#rt.start()
+rt = threading.Thread(name='reserve', target=reserver_thread)
+rt.start()
 
 mt = threading.Thread(name='motion', target=motion_handler)
 mt.start()

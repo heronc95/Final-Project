@@ -40,13 +40,15 @@ def swipe_listener():
         done = False
         enter_count = 0
         print("Here")
+        updating = False
         for event in device.read_loop():
             print("Here 2")
+            if not updating:
+                number = ""
             # Event is an inputEvent, which is not iterable
-            if  event.type == ecodes.EV_KEY:
+            if event.type == ecodes.EV_KEY:
                 category_string = str(categorize(event))
                 print(category_string)
-
                 # parse the raw input data to get the information we want from the device
                 elem = category_string.strip(" ").split(",")
                 # loop through the list finding the numbers that I want
@@ -59,7 +61,7 @@ def swipe_listener():
                 if done == False and t.isdigit() and  "down" not in elem[2]:
                     # then we know it is a hokie p number
                     number += str(t)
-                    #print("THe number I got was: " + number)
+                    updating = True
                 elif key_val == "KEY_EQUAL":
                     # Leave the loop if this happens
                     done = True
@@ -68,7 +70,7 @@ def swipe_listener():
                     if enter_count == 2:
                         break
         print(number)
-
+        updating = False
 
 
 def echo_current_number(addr):
