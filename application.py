@@ -93,7 +93,7 @@ def ViewData():
         TIME ="05-07-23-00,05-07-00-00"
     else:
         TIME = "NOT A VALID RESERVATION"
-    TCP_IP = '172.29.127.136'
+    TCP_IP = '0.0.0.0'
     TCP_PORT = 6969
     BUFFER_SIZE = 1024
     MESSAGE=PID_NUMBER+','+TIME

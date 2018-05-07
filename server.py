@@ -164,7 +164,7 @@ def motion_handler():
         value = body.decode("utf-8")
         print("Received %s" % value)
         # Now send it to the server here
-        TCP_IP = '172.29.22.19'
+        TCP_IP = '0.0.0.0'
         TCP_PORT = 9696
         BUFFER_SIZE = 1024
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
