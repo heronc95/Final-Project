@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Library Reservation System</title>
+    <p class="teaser">VIRGINIA TECH LIBRARY RESERVATION SYSTEM</p>
+</head>
+<body>
+
+<table border="1" width="100%" id="myTable">
+        <tr>
+                        <td>TIMESLOT NUMBER</td>
+                        <td>TIMESLOT</td>
+        </tr>
+                <tr>
+                        <td>1</td>
+                        <td>05-07-18 @ 00:00-01:00</td>
+                </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>05-07-18 @ 01:00-02:00</td>
+                </tr>
+                        <tr>
+                        <td>3</td>
+                        <td>05-07-18 @ 02:00-03:00</td>
+                </tr>
+                        <tr>
+                        <td>4</td>
+                        <td>05-07-18 @ 03:00-04:00</td>
+                </tr>
+                        <tr>
+                        <td>5</td>
+                        <td>05-07-18 @ 04:00-05:00</td>
+                </tr>
+                        <tr>
+                        <td>6</td>
+                        <td>05-07-18 @ 05:00-06:00</td>
+                </tr>
+                        <tr>
+                        <td>7</td>
+                        <td>05-07-18 @ 06:00-07:00</td>
+                </tr>
+                        <tr>
+                        <td>8</td>
+                        <td>05-07-18 @ 07:00-08:00</td>
+                </tr>
+                        <tr>
+                        <td>9</td>
+                        <td>05-07-18 @ 08:00-09:00</td>
+                </tr>
+                        <tr>
+                        <td>10</td>
+                        <td>05-07-18 @ 09:00-10:00</td>
+                </tr>
+                        <tr>
+                        <td>11</td>
+                        <td>05-07-18 @ 10:00-11:00</td>
+                </tr>
+                        <tr>
+                        <td>12</td>
+                        <td>05-07-18 @ 11:00-12:00</td>
+                </tr>
+                        <tr>
+                        <td>13</td>
+                        <td>05-07-18 @ 12:00-13:00</td>
+                </tr>
+                        <tr>
+                        <td>14</td>
+                        <td>05-07-18 @ 13:00-14:00</td>
+                </tr>
+                        <tr>
+                        <td>15</td>
+                        <td>05-07-18 @ 14:00-15:00</td>
+                </tr>
+                        <tr>
+                        <td>16</td>
+                        <td>05-07-18 @ 15:00-16:00</td>
+                </tr>
+                        <tr>
+                        <td>17</td>
+                        <td>05-07-18 @ 16:00-17:00</td>
+                </tr>
+                        <tr>
+                        <td>18</td>
+                        <td>05-07-18 @ 18:00-19:00</td>
+                </tr>
+                        <tr>
+                        <td>19</td>
+                        <td>05-07-18 @ 19:00-20:00</td>
+                </tr>
+                        <tr>
+                        <td>21</td>
+                        <td>05-07-18 @ 20:00-21:00</td>
+                </tr>
+                    </tr>
+                        <tr>
+                        <td>22</td>
+                        <td>05-07-18 @ 21:00-22:00</td>
+                </tr>
+                    </tr>
+                        <tr>
+                        <td>23</td>
+                        <td>05-07-18 @ 22:00-23:00</td>
+                </tr>
+                    </tr>
+                        <tr>
+                        <td>24</td>
+                        <td>05-07-18 @ 23:00-00:00</td>
+                </tr>
+
+</table>
+<br>
+<style>
+  .hide { position:absolute; top:-1px; left:-1px; width:1px; height:1px; }
+</style>
+<iframe name="hiddenFrame" class="hide"></iframe>
+            <form action="/data" method="post" target="hiddenFrame">
+                ENTER PID: <input type="text"  name="PID_NUMBER">
+                ENTER TIMESLOT NUMBER: <input type="number" id ="testy" name="TIME">
+                <input type="submit" name= "form" value="Submit" onclick="myFunction()"/>
+            </form>
+<script>
+    function myFunction() {
+    var y = document.getElementById("testy").value;
+    var x = document.getElementById("myTable").rows[y].cells;
+    x[0].innerHTML = "RESERVATION NO LONGER AVAILABLE";
+    count = count +1;
+}
+</script>
+  </body>
+</html>

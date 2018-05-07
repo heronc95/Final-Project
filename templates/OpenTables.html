@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+        var bot = {{ value }}
+    </script>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="2">
+    <title>Library Reservation System</title>
+    <p class="teaser">AVIALABLE LIBRARY TABLES</p>
+</head>
+<body>
+    <p class="teaser">----FREE FOR ALL DESK #1</p>
+    <canvas id="myCanvas" width="578" height="200"></canvas>
+    <script>
+      var canvas = document.getElementById('myCanvas');
+      var context = canvas.getContext('2d');
+      context.beginPath();
+      context.rect(188, 50, 200, 100);
+      if(bot == 10)
+      {
+                  context.fillStyle = 'red';
+      }
+      else if(bot == 5)
+      {
+                  context.fillStyle = 'green';
+      }
+      context.fill();
+      context.lineWidth = 7;
+      context.strokeStyle = 'black';
+      context.stroke();
+
+    </script>
+  </body>
+</html>
+</body>
+</html>
